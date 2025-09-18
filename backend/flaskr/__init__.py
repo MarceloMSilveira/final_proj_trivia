@@ -1,26 +1,44 @@
 import os
 from flask import Flask, request, abort, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
-
-from models import setup_db, Question, Category
+from config_db import db
+from models import Question, Category
+from flask_migrate import Migrate
 
 QUESTIONS_PER_PAGE = 10
 
-def create_app(test_config=None):
+migrate = Migrate()
+
+def create_app(config_object='config'):
     # create and configure the app
     app = Flask(__name__)
-    setup_db(app)
+    app.config.from_object(config_object)
+    db.init_app(app)
+
+    migrate.init_app(app,db)
+
+    with app.app_context():
+        db.create_all()
 
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
+    CORS(app,
+         origins=['*'],
+         methods=['GET','POST'],
+         supports_credentials=True   
+         )
+    
+    #CASO NECESSÁRIO EM ALGUMA ROTA EM ESPECIAL USAR
+    #@cross_origin()
 
-    """
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    """
-
+    @app.route('/')
+    def hello_home():
+        row = db.session.execute(db.select(Question)).scalars().first()
+        q = row.question
+        return f'ok: {q}'
+    
     """
     @TODO:
     Create an endpoint to handle GET requests
@@ -100,3 +118,7 @@ def create_app(test_config=None):
 
     return app
 
+if __name__ == '__main__':
+    
+    app = create_app()
+    app.run(debug=True)
