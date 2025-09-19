@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import '../stylesheets/App.css';
 import Question from './Question';
 import Search from './Search';
@@ -10,21 +10,33 @@ export default function QuestionView() {
   const [categories, setCategories] = useState({});
   const [currentCategory, setCurrentCategory] = useState(null);
 
-  const getQuestions = async () => {
-    try {
-      const res = await fetch(`/questions?page=${page}`, { credentials: 'include' });
+  const getQuestions = useCallback(
+    async (signal) => {
+      const res = await fetch(`/questions?page=${page}`, {
+        credentials: 'include',
+        signal,
+      });
       if (!res.ok) throw new Error('Failed questions');
       const result = await res.json();
-      setQuestions(result.questions || []);
-      setTotalQuestions(result.total_questions || 0);
-      setCategories(result.categories || {});
+      setQuestions(result.questions ?? []);
+      setTotalQuestions(result.total_questions ?? 0);
+      setCategories(result.categories ?? {});
       setCurrentCategory(result.current_category ?? null);
-    } catch {
-      alert('Unable to load questions. Please try your request again');
-    }
-  };
+    },
+    [page] // 👈 dependência real que a função usa
+  );
 
-  useEffect(() => { getQuestions(); }, [page]);
+
+  //
+  useEffect(() => {
+    const controller = new AbortController();
+    getQuestions(controller.signal).catch((err) => {
+      if (err?.name !== 'AbortError') {
+        alert('Unable to load questions. Please try your request again');
+      }
+    });
+    return () => controller.abort();
+  }, [getQuestions]); // 👈 agora é seguro e sem warning
 
   const selectPage = (num) => setPage(num);
 
