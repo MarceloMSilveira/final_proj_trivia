@@ -124,6 +124,14 @@ def create_app(config_object='config'):
     including 404 and 422.
     """
 
+    @app.errorhandler(405)
+    def handle_405(err):
+        return {
+            'success': False,
+            'error': 405,
+            'message':'Method Not Allowed'
+        }, 405
+
     return app
 
 if __name__ == '__main__':

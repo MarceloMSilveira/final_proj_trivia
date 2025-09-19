@@ -69,6 +69,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(len(categories),6)
 
     #resource: get all categories
+    #success
     def test_get_all_categories_success_case(self):
         res = self.client.get('/categories')
         data = res.get_json()
@@ -76,8 +77,18 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['total'], 6)
         self.assertIn('Science',data['categories'])
         self.assertNotIn('Pipoca',data['categories'])
+    #fail wrong method
+    def test_get_all_categories_using_post(self):
+        res = self.client.post('/categories', json={})
+        self.assertEqual(res.status_code, 405)
 
-        
+        data = res.get_json(silent=True)
+        if data:
+            self.assertFalse(data.get('success'))
+            self.assertEqual(data.get('error'),405)
+
+
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
