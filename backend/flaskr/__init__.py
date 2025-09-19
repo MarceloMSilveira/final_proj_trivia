@@ -25,7 +25,7 @@ def create_app(config_object='config'):
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
     CORS(app,
-         origins=['*'],
+         origins=['http://localhost:5173'],
          methods=['GET','POST'],
          supports_credentials=True   
          )
