@@ -68,7 +68,16 @@ class TriviaTestCase(unittest.TestCase):
         categories = [r.type for r in rows]
         self.assertEqual(len(categories),6)
 
+    #resource: get all categories
+    def test_get_all_categories_success_case(self):
+        res = self.client.get('/categories')
+        data = res.get_json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['total'], 6)
+        self.assertIn('Science',data['categories'])
+        self.assertNotIn('Pipoca',data['categories'])
 
+        
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()

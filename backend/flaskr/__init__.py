@@ -44,7 +44,15 @@ def create_app(config_object='config'):
     Create an endpoint to handle GET requests
     for all available categories.
     """
-
+    @app.route('/categories')
+    def all_categories():
+        rows = db.session.execute(db.select(Category).order_by(Category.id)).scalars().all()
+        categories = [r.type for r in rows]
+        return {
+            'success':True,
+            'categories':categories,
+            'total':len(categories)
+        }
 
     """
     @TODO:
