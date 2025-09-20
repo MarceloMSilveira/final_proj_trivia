@@ -85,9 +85,24 @@ class TriviaTestCase(unittest.TestCase):
         data = res.get_json(silent=True)
         if data:
             self.assertFalse(data.get('success'))
-            self.assertEqual(data.get('error'),405)
+            self.assertEqual(data.get('status'),405)
 
+    #resource: get questions (with or without page)
+    #success
+    def test_get_questions_with_or_without_page(self):
+        resp = self.client.get('/questions?page=1')
+        data = resp.get_json()
+        self.assertEqual(data['total_questions'],19)
+        
+        resp = self.client.get('/questions')
+        data = resp.get_json()
+        self.assertEqual(data['total_questions'],19)
 
+    #fail
+    def test_get_questions_page_out_of_range(self):
+        resp = self.client.get('/questions?page=100')
+        data = resp.get_json()
+        self.assertEqual(data['status'],400)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

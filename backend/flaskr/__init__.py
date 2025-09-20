@@ -33,6 +33,19 @@ def create_app(config_object='config'):
     #CASO NECESSÁRIO EM ALGUMA ROTA EM ESPECIAL USAR
     #@cross_origin()
 
+    #before requests:
+    @app.before_request
+    def _dbg():
+        print('>>', request.method, request.path, request.query_string)
+        #print('URL map:')
+        #print(app.url_map)
+
+    #aux functions
+    def paginate(questions,page):
+        start = (page-1)*QUESTIONS_PER_PAGE
+        end = start + QUESTIONS_PER_PAGE
+        return [q for q in questions[start:end]]
+
     @app.route('/')
     def hello_home():
         row = db.session.execute(db.select(Question)).scalars().first()
@@ -41,6 +54,7 @@ def create_app(config_object='config'):
     
     """
     @TODO:
+    done
     Create an endpoint to handle GET requests
     for all available categories.
     """
@@ -56,6 +70,7 @@ def create_app(config_object='config'):
 
     """
     @TODO:
+    done
     Create an endpoint to handle GET requests for questions,
     including pagination (every 10 questions).
     This endpoint should return a list of questions,
@@ -66,8 +81,61 @@ def create_app(config_object='config'):
     ten questions per page and pagination at the bottom of the screen for three pages.
     Clicking on the page numbers should update the questions.
     """
+    @app.route('/questions', methods=['GET'])
+    def get_questions():
+        page = request.args.get('page',1,type=int)
+        stmt = db.select(Question).order_by(Question.id)
+        rows = db.session.execute(stmt).scalars().all()
+        rows_categories = db.session.execute(db.select(Category)).scalars().all()
+        categories = {r.id : r.type for r in rows}
+
+        questions = [{'id':q.id,
+                      'question':q.question,
+                      'answer':q.answer,
+                      'category':q.category,
+                      'dificulty':q.difficulty
+                      } for q in rows]
+    
+        total = len(questions)
+        paginate_questions = paginate(questions,page)
+        if len(paginate_questions)==0:
+            abort(400, description= f"A pagina nr {page} não existe")
+        return {
+            "success":True,
+            "questions":paginate_questions,
+            "total_questions": total,
+            "categories":categories,
+            "current_category":1
+        }
 
     """
+        @TODO:
+        Create a GET endpoint to get questions based on category.
+
+        TEST: In the "List" tab / main screen, clicking on one of the
+        categories in the left column will cause only questions of that
+        category to be shown.
+    """
+    @app.route('/categories/<int:id>/questions')
+    def question_by_category(id):
+        categories_id = [1,2,3,4,5,6]
+        if id not in categories_id:
+            abort(404, description=f"A categoria {id} não existe")
+        stmt = db.select(Question.question).where(Question.category==id)
+        rows = db.session.execute(stmt).scalars().all()
+        questions = [r for r in rows]
+        
+        return {
+            'success':True,
+            'questions':questions,
+            'total_questions':len(questions),
+            'current_category':id
+        }
+        
+    
+
+    """
+    
     @TODO:
     Create an endpoint to DELETE question using a question ID.
 
@@ -99,15 +167,6 @@ def create_app(config_object='config'):
 
     """
     @TODO:
-    Create a GET endpoint to get questions based on category.
-
-    TEST: In the "List" tab / main screen, clicking on one of the
-    categories in the left column will cause only questions of that
-    category to be shown.
-    """
-
-    """
-    @TODO:
     Create a POST endpoint to get questions to play the quiz.
     This endpoint should take category and previous question parameters
     and return a random questions within the given category,
@@ -124,13 +183,50 @@ def create_app(config_object='config'):
     including 404 and 422.
     """
 
+    @app.errorhandler(400)
+    def handle_400(err):
+        return {
+            'status':400,
+            'success': False,
+            'error': 'bad request',
+            'message':getattr(err, 'description','')
+        }, 400
+    
+    @app.errorhandler(404)
+    def not_found(err):
+        return {
+            'status':404,
+            'success': False,
+            'error': 'resource not found',
+            'message':getattr(err, 'description','')
+        }, 404
+
     @app.errorhandler(405)
     def handle_405(err):
         return {
+            'status':405,
             'success': False,
-            'error': 405,
-            'message':'Method Not Allowed'
+            'error': 'Method not allowed',
+            'message':getattr(err, 'description','')
         }, 405
+    
+    @app.errorhandler(415)
+    def unsupported_type(error):
+        return{
+            "status": 415,
+            "success":False,
+            "error": 'unsupported type',
+            "message":getattr(error, 'description','')
+        }, 415
+    
+    @app.errorhandler(422)
+    def handle_422(err):
+        return {
+            'status':422,
+            'success': False,
+            'error': 'Unprocessable Entity',
+            'message':getattr(err, 'description','')
+        }, 422
 
     return app
 
