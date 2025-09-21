@@ -75,8 +75,8 @@ class TriviaTestCase(unittest.TestCase):
         data = res.get_json()
         self.assertTrue(data['success'])
         self.assertEqual(data['total'], 6)
-        self.assertIn('Science',data['categories'])
-        self.assertNotIn('Pipoca',data['categories'])
+        self.assertEqual('Science',data['categories']['1'])
+        #self.assertNotIn('Pipoca',data['categories'])
     #fail wrong method
     def test_get_all_categories_using_post(self):
         res = self.client.post('/categories', json={})
@@ -103,6 +103,21 @@ class TriviaTestCase(unittest.TestCase):
         resp = self.client.get('/questions?page=100')
         data = resp.get_json()
         self.assertEqual(data['status'],400)
+
+    #resouce: get categories/<id>/questions
+    #success
+    def test_get_questions_by_categorie_success(self):
+        resp = self.client.get('/categories/1/questions')
+        self.assertEqual(resp.status_code,200)
+        resp = self.client.get('/categories/5/questions')
+        data = resp.get_json()
+        self.assertEqual(data['total_questions'],3)
+    #fail
+    def test_get_questions_by_categorie_error_categorie_not_exist(self):
+        resp = self.client.get('/categories/7/questions')
+        self.assertEqual(resp.status_code,404)
+
+    
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

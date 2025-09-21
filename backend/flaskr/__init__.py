@@ -121,9 +121,9 @@ def create_app(config_object='config'):
         categories_id = [1,2,3,4,5,6]
         if id not in categories_id:
             abort(404, description=f"A categoria {id} não existe")
-        stmt = db.select(Question.question).where(Question.category==id)
+        stmt = db.select(Question).where(Question.category==id)
         rows = db.session.execute(stmt).scalars().all()
-        
+        #abortar quando não houver linhas
         questions = [{'id':q.id,
                       'question':q.question,
                       'answer':q.answer,
@@ -148,6 +148,7 @@ def create_app(config_object='config'):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page.
     """
+    
 
     """
     @TODO:
