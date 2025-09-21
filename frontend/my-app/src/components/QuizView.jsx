@@ -13,10 +13,12 @@ export default function QuizView() {
   const [guess, setGuess] = useState('');
   const [forceEnd, setForceEnd] = useState(false);
 
+  const API = 'http://localhost:5000'
+
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/categories', { credentials: 'include' });
+        const res = await fetch(`${API}/categories`, { credentials: 'include' });
         if (!res.ok) throw new Error('Failed categories');
         const data = await res.json();
         setCategories(data.categories || {});
@@ -35,7 +37,7 @@ export default function QuizView() {
     if (currentQuestion.id) prev.push(currentQuestion.id);
 
     try {
-      const res = await fetch('/quizzes', {
+      const res = await fetch(`${API}/quizzes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

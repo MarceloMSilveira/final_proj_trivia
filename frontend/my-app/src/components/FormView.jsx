@@ -11,10 +11,12 @@ export default function FormView() {
   const [categories, setCategories] = useState({});
   const formRef = useRef(null);
 
+  const API = 'http://localhost:5000'
+
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/categories', { credentials: 'include' });
+        const res = await fetch('${API}/categories', { credentials: 'include' });
         if (!res.ok) throw new Error('Failed categories');
         const data = await res.json();
         setCategories(data.categories || {});
@@ -32,7 +34,7 @@ export default function FormView() {
   const submitQuestion = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/questions', {
+      const res = await fetch(`${API}/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

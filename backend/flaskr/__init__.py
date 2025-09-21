@@ -61,7 +61,7 @@ def create_app(config_object='config'):
     @app.route('/categories')
     def all_categories():
         rows = db.session.execute(db.select(Category).order_by(Category.id)).scalars().all()
-        categories = [r.type for r in rows]
+        categories = {r.id:r.type for r in rows}
         return {
             'success':True,
             'categories':categories,
@@ -87,13 +87,13 @@ def create_app(config_object='config'):
         stmt = db.select(Question).order_by(Question.id)
         rows = db.session.execute(stmt).scalars().all()
         rows_categories = db.session.execute(db.select(Category)).scalars().all()
-        categories = {r.id : r.type for r in rows}
+        categories = {r.id : r.type for r in rows_categories}
 
         questions = [{'id':q.id,
                       'question':q.question,
                       'answer':q.answer,
                       'category':q.category,
-                      'dificulty':q.difficulty
+                      'difficulty':q.difficulty
                       } for q in rows]
     
         total = len(questions)
@@ -123,8 +123,14 @@ def create_app(config_object='config'):
             abort(404, description=f"A categoria {id} não existe")
         stmt = db.select(Question.question).where(Question.category==id)
         rows = db.session.execute(stmt).scalars().all()
-        questions = [r for r in rows]
         
+        questions = [{'id':q.id,
+                      'question':q.question,
+                      'answer':q.answer,
+                      'category':q.category,
+                      'difficulty':q.difficulty
+                      } for q in rows]
+
         return {
             'success':True,
             'questions':questions,

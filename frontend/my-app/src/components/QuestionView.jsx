@@ -3,6 +3,8 @@ import '../stylesheets/App.css';
 import Question from './Question';
 import Search from './Search';
 
+const API = 'http://localhost:5000';
+
 export default function QuestionView() {
   const [questions, setQuestions] = useState([]);
   const [page, setPage] = useState(1);
@@ -12,7 +14,7 @@ export default function QuestionView() {
 
   const getQuestions = useCallback(
     async (signal) => {
-      const res = await fetch(`/questions?page=${page}`, {
+      const res = await fetch(`${API}/questions?page=${page}`, {
         credentials: 'include',
         signal,
       });
@@ -47,7 +49,7 @@ export default function QuestionView() {
 
   const getByCategory = async (id) => {
     try {
-      const res = await fetch(`/categories/${id}/questions`, { credentials: 'include' });
+      const res = await fetch(`${API}/categories/${id}/questions`, { credentials: 'include' });
       if (!res.ok) throw new Error('Failed by category');
       const result = await res.json();
       setQuestions(result.questions || []);
@@ -60,7 +62,7 @@ export default function QuestionView() {
 
   const submitSearch = async (searchTerm) => {
     try {
-      const res = await fetch('/questions', {
+      const res = await fetch('${API}/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -80,7 +82,7 @@ export default function QuestionView() {
   const questionAction = (id) => async (action) => {
     if (action === 'DELETE' && window.confirm('are you sure you want to delete the question?')) {
       try {
-        const res = await fetch(`/questions/${id}`, {
+        const res = await fetch(`${API}/questions/${id}`, {
           method: 'DELETE',
           credentials: 'include',
         });
