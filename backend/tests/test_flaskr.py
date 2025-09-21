@@ -104,7 +104,7 @@ class TriviaTestCase(unittest.TestCase):
         data = resp.get_json()
         self.assertEqual(data['status'],400)
 
-    #resouce: get categories/<id>/questions
+    #resouce: questions by categorie  #get categories/<id>/questions
     #success
     def test_get_questions_by_categorie_success(self):
         resp = self.client.get('/categories/1/questions')
@@ -117,7 +117,15 @@ class TriviaTestCase(unittest.TestCase):
         resp = self.client.get('/categories/7/questions')
         self.assertEqual(resp.status_code,404)
 
-    
+    #resource: question action: delete question/id
+    #success
+    def test_delete_question_using_id_success(self):
+        resp = self.client.delete('questions/2')
+        self.assertIn(resp.status_code,[200,204])
+    #fail
+    def test_delete_question_using_id_fail(self):
+        resp = self.client.delete('question/200')
+        self.assertEqual(resp.status_code, 404)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

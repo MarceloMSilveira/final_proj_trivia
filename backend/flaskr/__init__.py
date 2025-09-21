@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, abort, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import random
 from config_db import db
 from models import Question, Category
@@ -148,7 +148,23 @@ def create_app(config_object='config'):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page.
     """
-    
+    @app.route('/questions/<int:id>',methods=['DELETE'])
+    @cross_origin()
+    def delete_questions(id):
+        try:
+            question = db.session.get(Question,id)
+            if not question:
+                abort(404, description=f"O id: {id} não foi encontrado no db")
+            question.delete()
+            return {
+                'success':True,
+                'status':200,
+                'deleted':f"{id}"
+            }
+        except Exception as e :
+            print(str(e))
+            abort(404, description=f'O id: {id} não existe')
+            
 
     """
     @TODO:
@@ -234,6 +250,15 @@ def create_app(config_object='config'):
             'error': 'Unprocessable Entity',
             'message':getattr(err, 'description','')
         }, 422
+
+    @app.errorhandler(500)
+    def handle_500(err):
+        return {
+            'status':500,
+            'success': False,
+            'error': 'Internal Server Error',
+            'message':getattr(err, 'description','')
+        }, 500
 
     return app
 
