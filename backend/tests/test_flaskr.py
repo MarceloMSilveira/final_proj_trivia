@@ -127,7 +127,30 @@ class TriviaTestCase(unittest.TestCase):
         resp = self.client.delete('question/200')
         self.assertEqual(resp.status_code, 404)
 
-    
+    #resource: questions action: post a question {question, answer, difficulty and category}
+    #success:
+    def test_post_question_success(self):
+        payload = {
+            'question':'Qual a capital do Tocantins?',
+            'answer':'Palmas',
+            'difficulty':2,
+            'category':3
+            }
+        result = self.client.post('/questions', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(result.status_code, 200) 
+        data = result.get_json()
+        self.assertIn('inserted',data)
+
+    #fail:
+    def test_post_question_fail(self):
+        payload = {
+            'question':'',
+            'answer':'Palmas',
+            'difficulty':2,
+            'category':3
+            }
+        result = self.client.post('/questions', data=json.dumps(payload), content_type='application/json')
+        self.assertNotIn(result.status_code, [200,201]) 
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
