@@ -152,6 +152,35 @@ class TriviaTestCase(unittest.TestCase):
         result = self.client.post('/questions', data=json.dumps(payload), content_type='application/json')
         self.assertNotIn(result.status_code, [200,201]) 
 
+    #resource: search term in questions
+    #success:
+    def test_search_a_term_in_questions_success(self):
+        payload = {
+            'searchTerm':'title'
+            }
+        result = self.client.post('/questions', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(result.status_code, 200) 
+        data = result.get_json()
+        self.assertIn('total_questions',data)
+
+    #fail1:
+    def test_wrong_term_in_request_data_fail(self):
+        payload = {
+            'search':'what'
+            }
+        result = self.client.post('/questions', data=json.dumps(payload), content_type='application/json')
+        self.assertNotIn(result.status_code, [200,201]) 
+
+    #fail2:
+    def test_search_a_term_not_in_questions_fail(self):
+        payload = {
+            'searchTerm':'mandruva'
+            }
+        result = self.client.post('/questions', data=json.dumps(payload), content_type='application/json')
+        data = result.get_json()
+        total = data['total_questions']
+        self.assertEqual(total, 0) 
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()

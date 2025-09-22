@@ -203,19 +203,52 @@ def create_app(config_object='config'):
 
     @app.route('/questions', methods=['POST'])
     def post_questions():
-        data = request.get_json()
-        question = Question(
-            question = data['question'],
-            answer= data['answer'],
-            difficulty= data['difficulty'],
-            category= data['category']
-        )
-        question.insert()
+        data = request.get_json(silent=True) or {}
+        
+        #branch de busca
+        if ('searchTerm' in data):
+            searchTerm = (data.get('searchTerm') or '').strip()
+            if not searchTerm:
+                abort(400, description="You must send a term to search")
+            stmt = db.select(Question).where(Question.question.ilike(f"%{searchTerm}%"))
+            rows = db.session.execute(stmt).scalars().all()
+            questions = [{'id':q.id,
+                            'question':q.question,
+                            'answer':q.answer,
+                            'category':q.category,
+                            'difficulty':q.difficulty
+                            } for q in rows]
+            total_questions = len(questions)
+            return {
+                'success':True,
+                'questions':questions,
+                'total_questions':total_questions
+            }
+        #branch de inserção:
+        if ('question' in data):
+            try:
+                question = Question(
+                    question = data['question'],
+                    answer= data['answer'],
+                    difficulty= data['difficulty'],
+                    category= data['category']
+                )
+                if (question.question == ''):
+                    abort(400, description="You must send a question to be inserted")
+                if (question.answer == ''):
+                    abort(400, description="You must send a answer to be inserted")
+                
+                question.insert()
 
-        return {
-            'success':True,
-            'inserted': f"id : {question.id}"
-        }
+                return {
+                    'success':True,
+                    'inserted': f"id : {question.id}"
+                }
+            except Exception as e:
+                abort(500, description= 'Verifique os dados enviados.')
+        else:
+            abort(500, description= 'Verifique os dados enviados.')
+
 
     """
     @TODO:
@@ -227,6 +260,7 @@ def create_app(config_object='config'):
     only question that include that string within their question.
     Try using the word "title" to start.
     """
+
 
     """
     @TODO:

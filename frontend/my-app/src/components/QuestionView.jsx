@@ -62,7 +62,7 @@ export default function QuestionView() {
 
   const submitSearch = async (searchTerm) => {
     try {
-      const res = await fetch('${API}/questions', {
+      const res = await fetch(`${API}/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
