@@ -201,6 +201,22 @@ def create_app(config_object='config'):
     of the questions list in the "List" tab.
     """
 
+    @app.route('/questions', methods=['POST'])
+    def post_questions():
+        data = request.get_json()
+        question = Question(
+            question = data['question'],
+            answer= data['answer'],
+            difficulty= data['difficulty'],
+            category= data['category']
+        )
+        question.insert()
+
+        return {
+            'success':True,
+            'inserted': f"id : {question.id}"
+        }
+
     """
     @TODO:
     Create a POST endpoint to get questions based on a search term.
@@ -226,6 +242,7 @@ def create_app(config_object='config'):
 
     """
     @TODO:
+    done
     Create error handlers for all expected errors
     including 404 and 422.
     """

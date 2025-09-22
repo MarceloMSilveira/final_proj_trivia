@@ -16,9 +16,10 @@ export default function FormView() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('${API}/categories', { credentials: 'include' });
+        const res = await fetch(`${API}/categories`, { credentials: 'include' });
         if (!res.ok) throw new Error('Failed categories');
         const data = await res.json();
+        //console.log(data.success)
         setCategories(data.categories || {});
       } catch {
         alert('Unable to load categories. Please try your request again');
