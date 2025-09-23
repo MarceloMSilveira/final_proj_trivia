@@ -5,6 +5,7 @@ import random
 from config_db import db
 from models import Question, Category
 from flask_migrate import Migrate
+from sqlalchemy import func
 
 QUESTIONS_PER_PAGE = 10
 
@@ -283,12 +284,39 @@ def create_app(config_object='config'):
     @app.route('/quizzes',methods=['POST'])
     def play_game():
         req = request.get_json(silent=True) or {}
-        print(req)
+        keys = req.keys()
+        if (not 'previous_questions' in keys or not 'quiz_category' in keys):
+            abort(400, description='Verifique os dados enviados')
+
+        previous_ids = [int(x) for x in req.get('previous_questions',[])] 
+        qc = req.get('quiz_category',0)
         
+        try:
+            category = int(qc.get('id') if isinstance(qc,dict) else qc or 0)
+        except (TypeError, ValueError, AttributeError):
+            category = 0
+
+        valid_categories = {0,1,2,3,4,5,6}
+        if category not in valid_categories:
+            abort(400, description='Verifique os dados enviados')
+
+        if category == 0: 
+            stmt = db.select(Question)
+        else:
+            stmt = db.select(Question).where(Question.category==category)
+
+        #faço a seleção excluindo os id já usados (caso haja essa lista)
+        if previous_ids:
+            stmt = stmt.where(Question.id.notin_(previous_ids))
+
+        #agora faço a ordenação aleatória
+        stmt = stmt.order_by(func.random()).limit(1)
+
+        question = db.session.execute(stmt).scalar_one_or_none()
         
         return {
             'success':True,
-            'question': {"id":24,"question":"Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?","answer":"Maya Angelou","difficulty":2,"category":4}
+            'question': question.format() if question else None
         }
 
 
