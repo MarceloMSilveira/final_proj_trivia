@@ -31,9 +31,9 @@ def create_app(config_object='config'):
     )
 
     #before requests:
-    @app.before_request
-    def _dbg():
-        print('>>', request.method, request.path, request.query_string)
+    #@app.before_request
+    #def _dbg():
+        #print('>>', request.method, request.path, request.query_string)
         #print('URL map:')
         #print(app.url_map)
 
@@ -221,20 +221,25 @@ def create_app(config_object='config'):
             searchTerm = (data.get('searchTerm') or '').strip()
             if not searchTerm:
                 abort(400, description="You must send a term to search")
-            stmt = db.select(Question).where(Question.question.ilike(f"%{searchTerm}%"))
-            rows = db.session.execute(stmt).scalars().all()
-            questions = [{'id':q.id,
-                            'question':q.question,
-                            'answer':q.answer,
-                            'category':q.category,
-                            'difficulty':q.difficulty
-                            } for q in rows]
-            total_questions = len(questions)
-            return {
-                'success':True,
-                'questions':questions,
-                'total_questions':total_questions
-            }
+            try:
+                stmt = db.select(Question).where(Question.question.ilike(f"%{searchTerm}%"))
+                rows = db.session.execute(stmt).scalars().all()
+                questions = [{'id':q.id,
+                                'question':q.question,
+                                'answer':q.answer,
+                                'category':q.category,
+                                'difficulty':q.difficulty
+                                } for q in rows]
+                total_questions = len(questions)
+                return {
+                    'success':True,
+                    'questions':questions,
+                    'total_questions':total_questions
+                }
+            except:
+                abort(404, description= 'Verifique os dados enviados.')
+            finally:
+                db.session.close()
         #branch de inserção:
         if ('question' in data):
             try:
@@ -257,6 +262,8 @@ def create_app(config_object='config'):
                 }
             except Exception as e:
                 abort(500, description= 'Verifique os dados enviados.')
+            finally:
+                db.session.close()
         else:
             abort(500, description= 'Verifique os dados enviados.')
 
@@ -264,14 +271,56 @@ def create_app(config_object='config'):
     """
     @TODO:
     Create a POST endpoint to get questions to play the quiz.
-    This endpoint should take category and previous question parameters
-    and return a random questions within the given category,
+    This endpoint should take category and previous questions parameters
+    and return a random question within the given category,
     if provided, and that is not one of the previous questions.
 
     TEST: In the "Play" tab, after a user selects "All" or a category,
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
     """
+
+    @app.route('/quizzes',methods=['POST'])
+    def play_game():
+        req = request.get_json(silent=True) or {}
+        print(req)
+        
+        # previous_questions = req.get("previous_questions")
+        # print(previous_questions)
+        # quiz_category = req.get("quiz_category")
+        #get all questions:
+
+        # stmt = db.select(Question)
+        # rows = db.session.execute(stmt).scalars().all()
+        # all_questions = [r for r in rows]
+        # all_questions_ids = db.session.execute(db.select(Question.id)).scalars().all()
+        # previous_questions_ids = [ q['id'] for q in previous_questions]
+        # set_prev = set(previous_questions_ids)
+
+        # questions_id_not_used_yet = [i for i in all_questions_ids if i not in set_prev]
+
+        # questions_not_used_yet = []
+        # for question in all_questions:
+        #     if question.id in questions_id_not_used_yet:
+        #         questions_not_used_yet.append(question)
+
+        # if quiz_category :
+        #     questions_of_current_category = []
+        #     for q in questions_not_used_yet:
+        #         if q.category == quiz_category:
+        #             questions_of_current_category.append(q)
+        #     return {
+        #         'success':True,
+        #         'questions': questions_of_current_category
+
+        #     }
+        # else:
+        return {
+            'success':True,
+            'question': {"id":24,"question":"Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?","answer":"Maya Angelou","difficulty":2,"category":4}
+        }
+
+
 
     """
     @TODO:

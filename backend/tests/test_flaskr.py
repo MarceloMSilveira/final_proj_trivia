@@ -60,6 +60,7 @@ class TriviaTestCase(unittest.TestCase):
         """Executed after reach test"""
         db.session.remove()
         db.drop_all()
+        db.engine.dispose()
         self.app_context.pop()
 
     #simple test of db
@@ -152,7 +153,7 @@ class TriviaTestCase(unittest.TestCase):
         result = self.client.post('/questions', data=json.dumps(payload), content_type='application/json')
         self.assertNotIn(result.status_code, [200,201]) 
 
-    #resource: search term in questions
+    #resource: search term in questions post
     #success:
     def test_search_a_term_in_questions_success(self):
         payload = {
@@ -181,6 +182,102 @@ class TriviaTestCase(unittest.TestCase):
         total = data['total_questions']
         self.assertEqual(total, 0) 
 
+    #resource: post quizzes
+    
+    #success cases:
+    #start game
+    def test_start_game_using_any_category(self):
+        payload = {
+            "previous_questions": [],
+            "quiz_category": {
+                "type": "Sports",
+                "id": "6"
+            }
+        }
+        data = self.client.post('/quizzes', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(data.status_code,200)
+        resp = data.get_json()
+        self.assertTrue(resp['success'])
+        self.assertIn('question',resp)
+        category = str(resp['question']['category'])
+        self.assertEqual(category,payload['quiz_category']['id'])
+    
+    # Id da questão enviada pelo back não está na lista previous_questions
+    def test_question_id_out_previous_list(self):
+        payload = {
+            "previous_questions": [3,4,5,6,7,8,12,15,20,24],
+            "quiz_category": {
+                "type": "Sports",
+                "id": "6"
+            }
+        }
+        data = self.client.post('/quizzes', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(data.status_code,200)
+        resp = data.get_json()
+        self.assertTrue(resp['success'])
+        self.assertNotIn(resp['question']['id'],payload['previous_questions'])
+    
+    # A categoria da questão enviada pelo back é a solicitada pelo jogador:
+    def test_check_category_match(self):
+        payload = {
+            "previous_questions": [3,4,5,6],
+            "quiz_category": {
+                "type": "Art",
+                "id": "2"
+            }
+        }
+        data = self.client.post('/quizzes', data=json.dumps(payload), content_type='application/json')
+        self.assertEqual(data.status_code,200)
+        resp = data.get_json()
+        self.assertTrue(resp['success'])
+        question_category = str(resp['question']['category'])
+        self.assertEqual(question_category,payload['quiz_category']['id'])
+
+    #fail cases:
+    #enviar categoria que não existe:
+    def test_there_is_no_this_category(self):
+        payload = {
+            "previous_questions": [3,4,5,6],
+            "quiz_category": {
+                "type": "Python",
+                "id": "11"
+            }
+        }
+        data = self.client.post('/quizzes', data=json.dumps(payload), content_type='application/json')
+        self.assertNotEqual(data.status_code,200)
+        resp = data.get_json()
+        self.assertFalse(resp['success'])
+
+    #patch na rota 
+    def test_method_not_allowed_patch(self):
+        payload = {
+            "previous_questions": [3,4,5,6,7,8,12,15,20],
+            "quiz_category": {
+                "type": "Sports",
+                "id": "6"
+            }
+        }
+        data = self.client.patch('/quizzes', data=json.dumps(payload), content_type='application/json')
+        self.assertNotEqual(data.status_code,200)
+        resp = data.get_json()
+        self.assertFalse(resp['success'])
+        self.assertNotIn('question',resp)
+
+    # previous questions key not in payload
+    def test_previous_questions_key_not_in_payload(self):
+        payload = {
+            "wrong_key_name": [3,4,5,6,7,8,12,15,20],
+            "quiz_category": {
+                "type": "Sports",
+                "id": "6"
+            }
+        }
+        data = self.client.post('/quizzes', data=json.dumps(payload), content_type='application/json')
+        self.assertNotEqual(data.status_code,200)
+        resp = data.get_json()
+        self.assertFalse(resp['success'])
+
+    
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
