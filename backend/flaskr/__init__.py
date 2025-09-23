@@ -285,36 +285,7 @@ def create_app(config_object='config'):
         req = request.get_json(silent=True) or {}
         print(req)
         
-        # previous_questions = req.get("previous_questions")
-        # print(previous_questions)
-        # quiz_category = req.get("quiz_category")
-        #get all questions:
-
-        # stmt = db.select(Question)
-        # rows = db.session.execute(stmt).scalars().all()
-        # all_questions = [r for r in rows]
-        # all_questions_ids = db.session.execute(db.select(Question.id)).scalars().all()
-        # previous_questions_ids = [ q['id'] for q in previous_questions]
-        # set_prev = set(previous_questions_ids)
-
-        # questions_id_not_used_yet = [i for i in all_questions_ids if i not in set_prev]
-
-        # questions_not_used_yet = []
-        # for question in all_questions:
-        #     if question.id in questions_id_not_used_yet:
-        #         questions_not_used_yet.append(question)
-
-        # if quiz_category :
-        #     questions_of_current_category = []
-        #     for q in questions_not_used_yet:
-        #         if q.category == quiz_category:
-        #             questions_of_current_category.append(q)
-        #     return {
-        #         'success':True,
-        #         'questions': questions_of_current_category
-
-        #     }
-        # else:
+        
         return {
             'success':True,
             'question': {"id":24,"question":"Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?","answer":"Maya Angelou","difficulty":2,"category":4}
