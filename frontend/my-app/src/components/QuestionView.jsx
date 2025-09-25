@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import '../stylesheets/App.css';
 import Question from './Question';
 import Search from './Search';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 const API = 'http://localhost:5000';
 
@@ -11,6 +12,10 @@ export default function QuestionView() {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [categories, setCategories] = useState({});
   const [currentCategory, setCurrentCategory] = useState(null);
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const getQuestions = useCallback(
     async (signal) => {
@@ -28,6 +33,23 @@ export default function QuestionView() {
     [page] // 👈 dependência real que a função usa
   );
 
+  useEffect(() => {
+    if (location.state?.reset) {
+      setPage(1);
+      setCurrentCategory(null);
+      const controller = new AbortController();
+      getQuestions(controller.signal).catch((err) => {
+        if (err?.name !== 'AbortError') {
+          alert('Unable to load questions. Please try your request again');
+        }
+      });
+
+      // limpa o state para não disparar de novo ao navegar
+      navigate(location.pathname, { replace: true, state: null });
+
+      return () => controller.abort();
+    }
+  }, [location.state?.reset, getQuestions, navigate, location.pathname]);
 
   //
   useEffect(() => {
