@@ -205,17 +205,17 @@ class TriviaTestCase(unittest.TestCase):
     # Id da questão enviada pelo back não está na lista previous_questions
     def test_question_id_out_previous_list(self):
         payload = {
-            "previous_questions": [3,4,5,6,7,8,12,15,20,24],
+            "previous_questions": [14,12,13],
             "quiz_category": {
-                "type": "Sports",
-                "id": "6"
+                "type": "Art",
+                "id": "2"
             }
         }
         data = self.client.post('/quizzes', data=json.dumps(payload), content_type='application/json')
         self.assertEqual(data.status_code,200)
         resp = data.get_json()
         self.assertTrue(resp['success'])
-        self.assertNotIn(resp['question']['id'],payload['previous_questions'])
+        self.assertEqual(resp['question']['id'],15)
     
     # A categoria da questão enviada pelo back é a solicitada pelo jogador:
     def test_check_category_match(self):
